@@ -1,6 +1,13 @@
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import { Task } from '../entities/Task';
 
-@Controller('tasks')
-export class TasksController {}
+@Controller('health')
+export class TasksController {
+  constructor(private readonly tasksService: TasksService) {}
+
+  @Get('db')
+  async checkDb() {
+    const count = await this.tasksService.countTasks();
+    return { taskCount: count };
+  }
+}
