@@ -9,6 +9,9 @@ import { Project } from './entities/Project.js';
 import { User } from './entities/User.js';
 import { Tag } from './entities/Tag.js';
 import { Comment } from './entities/Comment.js';
+import { UsersModule } from './users/users.module.js';
+import { TasksModule } from './tasks/tasks.module.js';
+import { ProjectsModule } from './projects/projects.module.js';
 
 @Module({
   imports: [
@@ -36,6 +39,9 @@ import { Comment } from './entities/Comment.js';
         synchronize: false,
       }),
     }),
+    UsersModule,
+    TasksModule,
+    ProjectsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
