@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { TasksService } from './tasks.service';
 import { Task } from '../entities/Task';
+import { ClockService } from './clock.provider';
 
 describe('TasksService', () => {
   let service: TasksService;
@@ -14,6 +15,10 @@ describe('TasksService', () => {
       providers: [
         TasksService,
         { provide: getRepositoryToken(Task), useValue: mockRepo },
+        {
+          provide: ClockService,
+          useValue: { now: jest.fn().mockReturnValue(new Date('2026-01-01')) },
+        },
       ],
     }).compile();
 
@@ -27,5 +32,11 @@ describe('TasksService', () => {
 
     expect(result).toBe(7);
     expect(mockRepo.count).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the mocked time from the clock', () => {
+    const result = service.lastCheckedAt();
+
+    expect(result).toEqual(new Date('2026-01-01'));
   });
 });
