@@ -7,6 +7,7 @@ import { Task } from './entities/Task';
 import { Tag } from './entities/Tag';
 import { Comment } from './entities/Comment';
 import { TasksModule } from './tasks/tasks.module';
+import { ModuleBModule } from './module-b/module-b.module';
 import * as Joi from 'joi';
 
 @Module({
@@ -36,6 +37,7 @@ import * as Joi from 'joi';
       }),
     }),
     TasksModule,
+    ModuleBModule,
   ],
 })
 export class AppModule {}
