@@ -112,3 +112,46 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+# Tasks API
+
+## Endpoints
+
+| Method | Path       | Body                    | Success | Errors   |
+| ------ | ---------- | ----------------------- | ------- | -------- |
+| POST   | /tasks     | CreateTaskDto           | 201     | 400, 404 |
+| GET    | /tasks     | —                       | 200     | —        |
+| GET    | /tasks/:id | —                       | 200     | 404      |
+| PATCH  | /tasks/:id | UpdateTaskDto (partial) | 200     | 400, 404 |
+| DELETE | /tasks/:id | —                       | 204     | 404      |
+
+## Filters on GET /tasks
+
+All optional, combinable: `?status=`, `?projectId=`, `?assigneeId=`.
+
+Example: `GET /tasks?status=todo&projectId=1`
+
+## Validation
+
+A global `ValidationPipe` is applied in `main.ts` with:
+
+- `whitelist: true` — strips unrecognized fields
+- `forbidNonWhitelisted: true` — rejects requests containing unrecognized fields with 400, instead of silently dropping them
+- `transform: true` — coerces incoming values to their declared DTO types (e.g. a query string `"3"` becomes the number `3`)
+
+## Error responses
+
+A 404 is returned when:
+
+- A task id in the URL doesn't exist
+- A `projectId` or `assigneeId` in the request body doesn't correspond to a real row
+
+A 400 is returned when:
+
+- Any field fails its `class-validator` rule (see `CreateTaskDto`)
+- The request body contains a field not defined on the DTO
+
+## Running tests
+
+- `npm test` — unit tests (mocked repositories, no database required)
+- `npm run test:e2e` — integration tests against a real database
