@@ -5,6 +5,7 @@ import { Task } from '../entities/Task.js';
 import { Project } from '../entities/Project.js';
 import { CreateTaskDto } from './dto/create-task.dto.js';
 import { UpdateTaskDto } from './dto/update-task.dto.js';
+import { User } from '../entities/User.js';
 
 interface TaskFilters {
   status?: string;
@@ -18,15 +19,25 @@ export class TasksService {
     @InjectRepository(Task)
     private readonly taskRepo: Repository<Task>,
     @InjectRepository(Project)
-    private readonly projectRepository: Repository<Project>,
+    private readonly projectRepo: Repository<Project>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
   ) {}
 
   async create(dto: CreateTaskDto): Promise<Task> {
-    const project = await this.projectRepository.findOneBy({
+    const project = await this.projectRepo.findOneBy({
       id: dto.projectId,
     });
     if (!project) {
       throw new NotFoundException(`Project ${dto.projectId} not found`);
+    }
+
+    let assignee: User | null = null;
+    if (dto.assigneeId !== undefined) {
+      assignee = await this.userRepo.findOneBy({ id: dto.assigneeId });
+      if (!assignee) {
+        throw new NotFoundException(`User ${dto.assigneeId} not found`);
+      }
     }
 
     const task = this.taskRepo.create({
@@ -34,6 +45,7 @@ export class TasksService {
       description: dto.description,
       priority: dto.priority,
       project,
+      assignee: assignee ?? undefined,
     });
 
     return this.taskRepo.save(task);
@@ -77,6 +89,23 @@ export class TasksService {
 
   async update(id: number, dto: UpdateTaskDto): Promise<Task> {
     const task = await this.findOne(id);
+
+    if (dto.projectId !== undefined) {
+      const project = await this.projectRepo.findOneBy({ id: dto.projectId });
+      if (!project) {
+        throw new NotFoundException(`Project ${dto.projectId} not found`);
+      }
+      task.project = project;
+    }
+
+    if (dto.assigneeId !== undefined) {
+      const assignee = await this.userRepo.findOneBy({ id: dto.assigneeId });
+      if (!assignee) {
+        throw new NotFoundException(`User ${dto.assigneeId} not found`);
+      }
+      task.assignee = assignee;
+    }
+
     Object.assign(task, {
       title: dto.title ?? task.title,
       description: dto.description ?? task.description,
