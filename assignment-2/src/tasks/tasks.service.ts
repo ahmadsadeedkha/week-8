@@ -5,6 +5,12 @@ import { Task } from '../entities/Task.js';
 import { Project } from '../entities/Project.js';
 import { CreateTaskDto } from './dto/create-task.dto.js';
 
+interface TaskFilters {
+  status?: string;
+  projectId?: number;
+  assigneeId?: number;
+}
+
 @Injectable()
 export class TasksService {
   constructor(
@@ -45,5 +51,26 @@ export class TasksService {
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
     return task;
+  }
+
+  async findAll(filters: TaskFilters): Promise<Task[]> {
+    const qb = this.taskRepository
+      .createQueryBuilder('task')
+      .leftJoinAndSelect('task.project', 'project')
+      .leftJoinAndSelect('task.assignee', 'assignee');
+
+    if (filters.status) {
+      qb.andWhere('task.status = :status', { status: filters.status });
+    }
+    if (filters.projectId !== undefined) {
+      qb.andWhere('project.id = :projectId', { projectId: filters.projectId });
+    }
+    if (filters.assigneeId !== undefined) {
+      qb.andWhere('assignee.id = :assigneeId', {
+        assigneeId: filters.assigneeId,
+      });
+    }
+
+    return qb.getMany();
   }
 }
