@@ -5,7 +5,10 @@ import {
   IsInt,
   Min,
   Max,
+  IsEnum,
+  IsArray,
 } from 'class-validator';
+import { TaskStatus } from '../../entities/Enums.js';
 
 export class CreateTaskDto {
   @IsString()
@@ -15,6 +18,10 @@ export class CreateTaskDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsEnum(TaskStatus)
+  status?: TaskStatus;
 
   @IsInt()
   @Min(1)
@@ -27,4 +34,9 @@ export class CreateTaskDto {
   @IsOptional()
   @IsInt()
   assigneeId?: number;
+
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  tagIds?: number[];
 }
