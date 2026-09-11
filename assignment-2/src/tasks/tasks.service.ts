@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Task } from '../entities/Task.js';
 import { Project } from '../entities/Project.js';
 import { CreateTaskDto } from './dto/create-task.dto.js';
+import { UpdateTaskDto } from './dto/update-task.dto.js';
 
 interface TaskFilters {
   status?: string;
@@ -15,7 +16,7 @@ interface TaskFilters {
 export class TasksService {
   constructor(
     @InjectRepository(Task)
-    private readonly taskRepository: Repository<Task>,
+    private readonly taskRepo: Repository<Task>,
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
   ) {}
@@ -28,18 +29,18 @@ export class TasksService {
       throw new NotFoundException(`Project ${dto.projectId} not found`);
     }
 
-    const task = this.taskRepository.create({
+    const task = this.taskRepo.create({
       title: dto.title,
       description: dto.description,
       priority: dto.priority,
       project,
     });
 
-    return this.taskRepository.save(task);
+    return this.taskRepo.save(task);
   }
 
   async findOne(id: number): Promise<Task> {
-    const task = await this.taskRepository.findOne({
+    const task = await this.taskRepo.findOne({
       where: { id },
       relations: {
         project: true,
@@ -54,7 +55,7 @@ export class TasksService {
   }
 
   async findAll(filters: TaskFilters): Promise<Task[]> {
-    const qb = this.taskRepository
+    const qb = this.taskRepo
       .createQueryBuilder('task')
       .leftJoinAndSelect('task.project', 'project')
       .leftJoinAndSelect('task.assignee', 'assignee');
@@ -72,5 +73,21 @@ export class TasksService {
     }
 
     return qb.getMany();
+  }
+
+  async update(id: number, dto: UpdateTaskDto): Promise<Task> {
+    const task = await this.findOne(id);
+    Object.assign(task, {
+      title: dto.title ?? task.title,
+      description: dto.description ?? task.description,
+      status: dto.status ?? task.status,
+      priority: dto.priority ?? task.priority,
+    });
+    return this.taskRepo.save(task);
+  }
+
+  async remove(id: number): Promise<void> {
+    const task = await this.findOne(id);
+    await this.taskRepo.remove(task);
   }
 }
