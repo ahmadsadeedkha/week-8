@@ -9,6 +9,7 @@ import { Comment } from './entities/Comment.js';
 import { ProjectsModule } from './projects/projects.module.js';
 import { CommentsModule } from './comments/comments.module.js';
 import { TasksModule } from './tasks/tasks.module.js';
+import { UsersModule } from './users/users.module.js';
 import Joi from 'joi';
 
 @Module({
@@ -40,6 +41,7 @@ import Joi from 'joi';
     ProjectsModule,
     CommentsModule,
     TasksModule,
+    UsersModule,
   ],
 })
 export class AppModule {}
