@@ -55,10 +55,10 @@ export class TasksService {
     return { ...task, commentCount };
   }
 
-  async getComments(taskId: number): Promise<Comment[]> {
+  async getComments(taskId: number, page = 1, pageSize = 10) {
     await this.findOne(taskId); // 404s if the task doesn't exist
-    return this.commentsService.findAllForTask(taskId);
-  }
+    return this.commentsService.findAllForTask(taskId, page, pageSize);
+  } 
 
   async addComment(taskId: number, dto: CreateCommentDto): Promise<Comment> {
     const task = await this.findOne(taskId); // 404s if the task doesn't exist

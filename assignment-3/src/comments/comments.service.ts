@@ -14,10 +14,18 @@ export class CommentsService {
     @InjectRepository(User) private readonly userRepo: Repository<User>,
   ) {}
 
-  async findAllForTask(taskId: number): Promise<Comment[]> {
-    return this.commentRepo.find({
+  async findAllForTask(taskId: number, page = 1, pageSize = 10) {
+    const take = Math.min(pageSize, 50);
+    const skip = (Math.max(page, 1) - 1) * take;
+
+    const [items, total] = await this.commentRepo.findAndCount({
       where: { task: { id: taskId } },
+      skip,
+      take,
+      order: { created_at: 'ASC' },
     });
+
+    return { items, total, page: Math.max(page, 1), pageSize: take };
   }
 
   async createForTask(dto: CreateCommentDto, task: Task): Promise<Comment> {
