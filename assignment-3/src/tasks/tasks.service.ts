@@ -30,15 +30,29 @@ export class TasksService {
     return this.taskRepo.save(task);
   }
 
-  async findOne(id: number): Promise<Task> {
-    const task = await this.taskRepo.findOne({
-      where: { id },
-      relations: { project: true, assignee: true, tags: true },
-    });
+  async findOne(id: number): Promise<Task & { commentCount: number }> {
+    const result = await this.taskRepo
+      .createQueryBuilder('task')
+      .leftJoinAndSelect('task.project', 'project')
+      .leftJoinAndSelect('task.assignee', 'assignee')
+      .leftJoinAndSelect('task.tags', 'tags')
+      .addSelect((subQuery) => {
+        return subQuery
+          .select('COUNT(*)', 'count')
+          .from('comments', 'comment')
+          .where('comment.task_id = task.id');
+      }, 'commentCount')
+      .where('task.id = :id', { id })
+      .getRawAndEntities();
+
+    const task = result.entities[0];
     if (!task) {
       throw new NotFoundException(`Task ${id} not found`);
     }
-    return task;
+
+    const commentCount = parseInt(result.raw[0].commentCount, 10);
+
+    return { ...task, commentCount };
   }
 
   async getComments(taskId: number): Promise<Comment[]> {
