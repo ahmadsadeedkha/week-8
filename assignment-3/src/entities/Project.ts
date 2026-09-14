@@ -6,6 +6,7 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  Relation,
 } from "typeorm";
 import { User } from "./User.js";
 import { Task } from "./Task.js";
@@ -32,5 +33,5 @@ export class Project {
   created_at!: Date;
 
   @OneToMany(() => Task, (task) => task.project)
-  tasks!: Task[];
+  tasks!: Relation<Task>[];
 }
