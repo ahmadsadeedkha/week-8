@@ -6,6 +6,7 @@ import { Project } from './entities/Project.js';
 import { Task } from './entities/Task.js';
 import { Tag } from './entities/Tag.js';
 import { Comment } from './entities/Comment.js';
+import { ProjectsModule } from './projects/projects.module.js';
 import * as Joi from 'joi';
 
 @Module({
@@ -34,6 +35,7 @@ import * as Joi from 'joi';
         synchronize: false,
       }),
     }),
+    ProjectsModule,
   ],
 })
 export class AppModule {}
