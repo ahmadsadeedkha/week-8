@@ -66,7 +66,7 @@ export class TasksService {
     return task;
   }
 
-  async findAll(filters: TaskFilters): Promise<Task[]> {
+  async findAll(filters: TaskFilters, page = 1, pageSize = 10) {
     const qb = this.taskRepo
       .createQueryBuilder('task')
       .leftJoinAndSelect('task.project', 'project')
@@ -83,8 +83,12 @@ export class TasksService {
         assigneeId: filters.assigneeId,
       });
     }
+    const take = Math.min(pageSize, 50); // hard cap regardless of what's requested
+    const skip = (Math.max(page, 1) - 1) * take;
 
-    return qb.getMany();
+    const [items, total] = await qb.skip(skip).take(take).getManyAndCount();
+
+    return { items, total, page: Math.max(page, 1), pageSize: take };
   }
 
   async update(id: number, dto: UpdateTaskDto): Promise<Task> {

@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { TasksService } from './tasks.service.js';
 import { CreateTaskDto } from './dto/create-task.dto.js';
 import { UpdateTaskDto } from './dto/update-task.dto.js';
@@ -22,19 +33,22 @@ export class TasksController {
     @Query('status') status?: string,
     @Query('projectId') projectId?: string,
     @Query('assigneeId') assigneeId?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
   ) {
-    return this.tasksService.findAll({
-      status,
-      projectId: projectId ? Number(projectId) : undefined,
-      assigneeId: assigneeId ? Number(assigneeId) : undefined,
-    });
+    return this.tasksService.findAll(
+      {
+        status,
+        projectId: projectId ? Number(projectId) : undefined,
+        assigneeId: assigneeId ? Number(assigneeId) : undefined,
+      },
+      page ? Number(page) : undefined,
+      pageSize ? Number(pageSize) : undefined,
+    );
   }
 
   @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateTaskDto,
-  ) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateTaskDto) {
     return this.tasksService.update(id, dto);
   }
 
