@@ -43,6 +43,7 @@ export class TasksService {
     const task = this.taskRepo.create({
       title: dto.title,
       description: dto.description,
+      status: dto.status,
       priority: dto.priority,
       project,
       assignee: assignee ?? undefined,
