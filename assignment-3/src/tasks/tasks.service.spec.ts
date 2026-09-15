@@ -9,10 +9,24 @@ import { CommentsService } from '../comments/comments.service.js';
 
 describe('TasksService.findOne', () => {
   let service: TasksService;
-  let mockTaskRepo: { findOne: ReturnType<typeof vi.fn> };
+  let mockQueryBuilder: {
+    leftJoinAndSelect: ReturnType<typeof vi.fn>;
+    addSelect: ReturnType<typeof vi.fn>;
+    where: ReturnType<typeof vi.fn>;
+    getRawAndEntities: ReturnType<typeof vi.fn>;
+  };
+  let mockTaskRepo: { createQueryBuilder: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
-    mockTaskRepo = { findOne: vi.fn() };
+    mockQueryBuilder = {
+      leftJoinAndSelect: vi.fn().mockReturnThis(),
+      addSelect: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      getRawAndEntities: vi.fn(),
+    };
+    mockTaskRepo = {
+      createQueryBuilder: vi.fn().mockReturnValue(mockQueryBuilder),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -39,7 +53,10 @@ describe('TasksService.findOne', () => {
       tags: [],
     } as unknown as Task;
 
-    mockTaskRepo.findOne.mockResolvedValue(fakeTask);
+    mockQueryBuilder.getRawAndEntities.mockResolvedValue({
+      entities: [fakeTask],
+      raw: [{ commentCount: '3' }],
+    });
 
     const result = await service.findOne(1);
 
@@ -50,15 +67,19 @@ describe('TasksService.findOne', () => {
     expect(result.project).toBe(fakeProject);
     expect(result.assignee).toBeNull();
     expect(result.tags).toEqual([]);
+    expect(result.commentCount).toBe(3);
 
-    expect(mockTaskRepo.findOne).toHaveBeenCalledWith({
-      where: { id: 1 },
-      relations: { project: true, assignee: true, tags: true },
+    expect(mockTaskRepo.createQueryBuilder).toHaveBeenCalledWith('task');
+    expect(mockQueryBuilder.where).toHaveBeenCalledWith('task.id = :id', {
+      id: 1,
     });
   });
 
-  it('throws NotFoundException when the repository returns null', async () => {
-    mockTaskRepo.findOne.mockResolvedValue(null);
+  it('throws NotFoundException when the query returns no entity', async () => {
+    mockQueryBuilder.getRawAndEntities.mockResolvedValue({
+      entities: [],
+      raw: [],
+    });
 
     await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
   });

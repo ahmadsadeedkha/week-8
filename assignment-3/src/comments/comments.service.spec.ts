@@ -12,7 +12,7 @@ describe('CommentsService', () => {
   let mockCommentRepo: {
     create: ReturnType<typeof vi.fn>;
     save: ReturnType<typeof vi.fn>;
-    find: ReturnType<typeof vi.fn>;
+    findAndCount: ReturnType<typeof vi.fn>;
   };
   let mockUserRepo: { findOneBy: ReturnType<typeof vi.fn> };
 
@@ -20,7 +20,7 @@ describe('CommentsService', () => {
     mockCommentRepo = {
       create: vi.fn(),
       save: vi.fn(),
-      find: vi.fn(),
+      findAndCount: vi.fn(),
     };
     mockUserRepo = {
       findOneBy: vi.fn(),
@@ -77,13 +77,17 @@ describe('CommentsService', () => {
       { id: 2, body: 'second', task: { id: 5 } },
     ] as Comment[];
 
-    mockCommentRepo.find.mockResolvedValue(fakeComments);
+    mockCommentRepo.findAndCount.mockResolvedValue([fakeComments, 2]);
 
     const result = await service.findAllForTask(5);
 
-    expect(result).toBe(fakeComments);
-    expect(mockCommentRepo.find).toHaveBeenCalledWith({
+    expect(result.items).toBe(fakeComments);
+    expect(result.total).toBe(2);
+    expect(mockCommentRepo.findAndCount).toHaveBeenCalledWith({
       where: { task: { id: 5 } },
+      skip: 0,
+      take: 10,
+      order: { created_at: 'ASC' },
     });
   });
 });
